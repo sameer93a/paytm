@@ -9,3 +9,9 @@
 - jsonwebtoken
 - mongoose
 - zod
+
+# FRONTEND TECH STACK
+
+- React
+- React Router Dom
+- axios
