@@ -1,6 +1,6 @@
 ## Build a basic version of PayTM
 
-# TECH STACK
+# BACKEND TECH STACK
 
 - bcrypt
 - cors
