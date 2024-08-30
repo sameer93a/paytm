@@ -10,7 +10,7 @@ const bcrypt = require("bcrypt");
 const signupSchema = z.object({
   username: z.string().email(),
   firstName: z.string(),
-  lastname: z.string(),
+  lastName: z.string(),
   password: z.string(),
 });
 
@@ -96,3 +96,5 @@ router.post("/signin", async (req, res) => {
     msg: "Error while loggin in",
   });
 });
+
+module.exports = router;
