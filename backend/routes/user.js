@@ -5,6 +5,7 @@ const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
+const bcrypt = require("bcrypt");
 
 const signupSchema = z.object({
   username: z.string().email(),
@@ -29,9 +30,13 @@ router.post("/signup", async (req, res) => {
     });
   }
   // Create the user with fake balacne
+  const { password } = req.body;
+  const saltRounds = 10;
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+
   const user = await User.create({
     username: req.body.username,
-    password: req.body.password,
+    password: hashedPassword,
     firstName: req.body.firstName,
     lastName: req.body.lastName,
   });
@@ -51,5 +56,43 @@ router.post("/signup", async (req, res) => {
   res.json({
     msg: "User created successfully",
     token: token,
+  });
+});
+
+const signinSchema = z.object({
+  username: z.string().email(),
+  password: z.string(),
+});
+
+router.post("/signin", async (req, res) => {
+  const data = signinSchema.safeParse(req.body);
+  if (!data.success) {
+    return res.status(411).json({
+      msg: "Eamil already taken / Incorrect inputs",
+    });
+  }
+  const { password } = await req.body;
+  const user = await User.findOne({
+    username: req.body.username,
+  });
+  if (user) {
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      return res.status(400).send("Invalid username or password.");
+    }
+    const token = jwt.sign(
+      {
+        userId: user._id,
+      },
+      JWT_SECRET
+    );
+    res.json({
+      token: token,
+    });
+    return;
+  }
+  res.status(411).json({
+    msg: "Error while loggin in",
   });
 });
