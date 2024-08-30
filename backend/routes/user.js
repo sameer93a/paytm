@@ -97,4 +97,53 @@ router.post("/signin", async (req, res) => {
   });
 });
 
+const updateBody = z.object({
+  password: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+});
+
+router.put("/update", authMiddleware, async (req, res) => {
+  const data = updateBody.safeParse(req.body);
+  if (!data.success) {
+    res.status(411).json({
+      msg: "Error while updating information",
+    });
+  }
+  await User.updateOne(req.body, {
+    id: req.userId,
+  });
+  res.json({
+    msg: "Updatd successfully",
+  });
+});
+
+// In this we are doing "LIKE %abc%"
+router.get("/bulk", async (req, res) => {
+  const filter = req.query.filter || "";
+
+  const users = await User.find({
+    $or: [
+      {
+        firstName: {
+          $regex: filter,
+        },
+      },
+      {
+        lastName: {
+          $regex: filter,
+        },
+      },
+    ],
+  });
+
+  res.json({
+    user: users.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    })),
+  });
+});
 module.exports = router;
